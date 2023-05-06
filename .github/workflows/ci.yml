@@ -1,4 +1,4 @@
-name: golangci-lint
+name: CI
 on:
   push:
     tags:
@@ -11,16 +11,19 @@ permissions:
   contents: read
   # Optional: allow read access to pull request. Use with `only-new-issues` option.
   # pull-requests: read
+env:
+  GO_VERSION: '1.20.3'
 jobs:
   golangci:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v4
-        with:
-          go-version: '1.20.3'
-          cache: false
       - uses: actions/checkout@v3
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
@@ -45,3 +48,15 @@ jobs:
 
           # Optional: if set to true then the action don't cache or restore ~/.cache/go-build.
           # skip-build-cache: true
+  gotest:
+    name: test
+    needs: golangci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: Run tests
+        run: make test
